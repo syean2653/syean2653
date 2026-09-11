@@ -1,1 +1,173 @@
+### 1.7.1 Short Answer
 
+**1. In an 8-bit binary number, which is the most significant bit (MSB)?**
+* **Answer:** The leftmost bit (or bit 7, if bits are numbered from 0 to 7 starting from the right).
+
+**2. What is the decimal representation of each of the following unsigned binary integers?**
+* **a. 00110101** 
+  * **Answer:** 53 (32 + 16 + 4 + 1)
+* **b. 10010110**
+  * **Answer:** 150 (128 + 16 + 4 + 2)
+* **c. 11001100**
+  * **Answer:** 204 (128 + 64 + 8 + 4)
+
+**3. What is the sum of each pair of binary integers?**
+* **a. 10101111 + 11011011**
+  * **Answer:** 110001010
+* **b. 10010111 + 11111111**
+  * **Answer:** 110010110
+* **c. 01110101 + 10101100**
+  * **Answer:** 100100001
+
+**4. Calculate binary 00001101 minus 00000111.**
+* **Answer:** 00000110 (Decimal: 13 - 7 = 6)
+
+**5. How many bits are used by each of the following data types?**
+* **a. word** -> **Answer:** 16 bits
+* **b. doubleword** -> **Answer:** 32 bits
+* **c. quadword** -> **Answer:** 64 bits
+* **d. double quadword** -> **Answer:** 128 bits
+
+**6. What is the minimum number of binary bits needed to represent each of the following unsigned decimal integers?**
+* **a. 4095** -> **Answer:** 12 bits (2^12 - 1 = 4095)
+* **b. 65534** -> **Answer:** 16 bits (Fits within 2^16 - 1)
+* **c. 42319** -> **Answer:** 16 bits (Fits within 2^16 - 1)
+
+**7. What is the hexadecimal representation of each of the following binary numbers?**
+* **a. 0011 0101 1101 1010** -> **Answer:** 35DA
+* **b. 1100 1110 1010 0011** -> **Answer:** CEA3
+* **c. 1111 1110 1101 1011** -> **Answer:** FEDB
+
+**8. What is the binary representation of the following hexadecimal numbers?**
+* **a. 0126F9D4** -> **Answer:** 0000 0001 0010 0110 1111 1001 1101 0100
+* **b. 6ACDFA95** -> **Answer:** 0110 1010 1100 1101 1111 1010 1001 0101
+* **c. F69BDC2A** -> **Answer:** 1111 0110 1001 1011 1101 1100 0010 1010
+
+**9. What is the unsigned decimal representation of each of the following hexadecimal integers?**
+* **a. 3A** -> **Answer:** 58 (3 * 16 + 10)
+* **b. 1BF** -> **Answer:** 447 (1 * 256 + 11 * 16 + 15)
+* **c. 1001** -> **Answer:** 4097 (1 * 4096 + 1)
+
+**10. What is the unsigned decimal representation of each of the following hexadecimal integers?**
+* **a. 62** -> **Answer:** 98 (6 * 16 + 2)
+* **b. 4B3** -> **Answer:** 1203 (4 * 256 + 11 * 16 + 3)
+* **c. 29F** -> **Answer:** 671 (2 * 256 + 9 * 16 + 15)
+
+**11. What is the 16-bit hexadecimal representation of each of the following signed decimal integers?**
+*(Note: Use two's complement for negative numbers)*
+* **a. -24** -> **Answer:** FFE8 (24 is 0018h. Two's complement is FFE8h)
+* **b. -331** -> **Answer:** FEB5 (331 is 014Bh. Two's complement is FEB5h)
+
+**12. What is the 16-bit hexadecimal representation of each of the following signed decimal integers?**
+* **a. -21** -> **Answer:** FFEB (21 is 0015h. Two's complement is FFEBh)
+* **b. -45** -> **Answer:** FFD3 (45 is 002Dh. Two's complement is FFD3h)
+
+**13. The following 16-bit hexadecimal numbers represent signed integers. Convert each to decimal.**
+* **a. 6BF9** -> **Answer:** 27641 (Positive number, 6*4096 + 11*256 + 15*16 + 9)
+* **b. C123** -> **Answer:** -16093 (Negative number. Two's complement is 3EDD, which equals 16093)
+
+**14. The following 16-bit hexadecimal numbers represent signed integers. Convert each to decimal.**
+* **a. 4CD2** -> **Answer:** 19666 (Positive number)
+* **b. 8230** -> **Answer:** -32208 (Negative number. Two's complement is 7DD0, which equals 32208)
+
+**15. What is the decimal representation of each of the following signed binary numbers?**
+* **a. 10110101** -> **Answer:** -75 (Negative. Two's complement is 01001011 = 75)
+* **b. 00101010** -> **Answer:** 42 (Positive. 32 + 8 + 2)
+* **c. 11110000** -> **Answer:** -16 (Negative. Two's complement is 00010000 = 16)
+
+**16. What is the decimal representation of each of the following signed binary numbers?**
+* **a. 10000000** -> **Answer:** -128
+* **b. 11001100** -> **Answer:** -52
+* **c. 10110111** -> **Answer:** -73
+
+**17. What is the 8-bit binary (two's-complement) representation of each of the following signed decimal integers?**
+* **a. -5** -> **Answer:** 11111011
+* **b. -42** -> **Answer:** 11010110
+* **c. -16** -> **Answer:** 11110000
+
+**18. What is the 8-bit binary (two's-complement) representation of each of the following signed decimal integers?**
+* **a. -72** -> **Answer:** 10111000
+* **b. -98** -> **Answer:** 10011110
+* **c. -26** -> **Answer:** 11100110
+
+**19. What is the sum of each pair of hexadecimal integers?**
+* **a. 6B4 + 3FE** -> **Answer:** AAB2
+* **b. A49 + 6BD** -> **Answer:** 1106
+
+**20. What is the sum of each pair of hexadecimal integers?**
+* **a. 7C4 + 3BE** -> **Answer:** B82
+* **b. B69 + 7AD** -> **Answer:** 1316
+
+**21. What are the hexadecimal and decimal representations of the ASCII character capital B?**
+* **Answer:** Decimal: 66, Hexadecimal: 42
+
+**22. What are the hexadecimal and decimal representations of the ASCII character capital G?**
+* **Answer:** Decimal: 71, Hexadecimal: 47
+
+**23. Challenge: What is the largest decimal value you can represent, using a 129-bit unsigned integer?**
+* **Answer:** 2^129 - 1
+
+**24. Challenge: What is the largest decimal value you can represent, using a 86-bit signed integer?**
+* **Answer:** 2^85 - 1 (1 bit is reserved for the sign)
+
+**25. Create a truth table to show all possible inputs and outputs for the boolean function described by ¬(A ∨ B).**
+* **Answer:**
+  | A | B | A ∨ B | ¬(A ∨ B) |
+  |---|---|---|---|
+  | F | F | F | **T** |
+  | F | T | T | **F** |
+  | T | F | T | **F** |
+  | T | T | T | **F** |
+
+**26. Create a truth table to show all possible inputs and outputs for the boolean function described by (¬A ∧ ¬B).**
+* **Answer:**
+  | A | B | ¬A | ¬B | ¬A ∧ ¬B |
+  |---|---|---|---|---|
+  | F | F | T | T | **T** |
+  | F | T | T | F | **F** |
+  | T | F | F | T | **F** |
+  | T | T | F | F | **F** |
+  * **Description:** The rightmost column of this table is identical to the rightmost column in question 25.
+  * **De Morgan's Theorem:** Yes, this perfectly demonstrates De Morgan's Theorem, which states that ¬(A ∨ B) = ¬A ∧ ¬B.
+
+**27. If a boolean function has four inputs, how many rows are required for its truth table?**
+* **Answer:** 16 rows (2^4)
+
+**28. How many selector bits are required for a four-input multiplexer?**
+* **Answer:** 2 selector bits (2^2 = 4)
+
+<br>
+
+### 1.7.2 Algorithm Workbench (Python)
+
+**1. 16-bit binary string to integer**
+```python
+def binary_string_to_int(bin_str):
+    result = 0
+    for i, char in enumerate(reversed(bin_str)):
+        if char == '1':
+            result += 2 ** i
+    return result
+
+**2. 32-bit hexadecimal string to integer
+```python
+def hex_string_to_int(hex_str):
+    hex_chars = "0123456789ABCDEF"
+    result = 0
+    for i, char in enumerate(reversed(hex_str.upper())):
+        result += hex_chars.index(char) * (16 ** i)
+    return result
+
+**3 & 4. Integer to Binary / Hexadecimal String
+```python
+def int_to_base_string(n, base):
+    if n == 0: return "0"
+    chars = "0123456789ABCDEF"
+    result = ""
+    while n > 0:
+        result = chars[n % base] + result
+        n //= base
+    return result
+
+# Q3: int_to_base_string(n, 2)
+# Q4: int_to_base_string(n, 16)
