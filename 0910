@@ -1,0 +1,23 @@
+
+## 💡 핵심 학습 내용 (Key Learnings)
+본 과제를 수행하며 다음과 같은 컴퓨터 구조의 핵심 개념을 코드 레벨에서 적용하고 이해했습니다.
+
+- **CPU 레지스터(Register) 직접 제어:** 범용 레지스터를 활용한 데이터 임시 저장 및 연산 처리, PC(Program Counter)와 SP(Stack Pointer)의 흐름 이해
+- **메모리 구조(Memory Layout) 이해:** 어셈블리 코드 상에서 Data 영역(초기화된 데이터), BSS 영역(초기화되지 않은 데이터), Text 영역(실행 코드)을 직접 분리하여 할당 및 관리
+- **시스템 버스(System Bus) 개념 적용:** 메모리에 적재된 데이터가 주소 버스와 데이터 버스를 통해 CPU로 이동하고 제어되는 논리적 흐름 파악
+
+## 🛠️ 개발 및 실행 환경 (Environment)
+- **OS:** [예: Ubuntu 22.04 LTS / Windows 11]
+- **Assembler / Compiler:** [예: NASM / MASM / GCC]
+- **Architecture:** [예: x86_64 / ARM]
+
+## 🚀 실행 방법 (How to Run)
+```bash
+# 1. 어셈블 (오브젝트 파일 생성)
+[예: nasm -f elf64 main.asm]
+
+# 2. 링킹 (실행 파일 생성)
+[예: gcc -no-pie -o main main.o]
+
+# 3. 실행
+[예: ./main]
