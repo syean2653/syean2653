@@ -1,0 +1,85 @@
+## 4.9.1 Short Answer
+
+**1. What will be the value in EDX after each of the lines marked (a) and (b) execute?**[span_0](start_span)[span_0](end_span)
+* (a) `FFFF8002h`: `8002h`는 음수이므로 `movsx`에 의해 부호 비트가 확장됨[span_1](start_span)[span_1](end_span).
+* (b) `00004321h`: `4321h`는 양수이므로 `movsx`에 의해 빈자리가 0으로 채워짐[span_2](start_span)[span_2](end_span).
+
+**2. What will be the value in EAX after the following lines execute?**[span_3](start_span)[span_3](end_span)
+* `10020000h`: `ax`(`FFFFh`)에 1을 더하면 16비트 내에서 오버플로우가 발생하여 `0000h`가 되며 상위 16비트에는 영향을 주지 않음[span_4](start_span)[span_4](end_span).
+
+**3. What will be the value in EAX after the following lines execute?**[span_5](start_span)[span_5](end_span)
+* `3002FFFFh`: `ax`(`0000h`)에서 1을 빼면 언더플로우가 발생하여 `FFFFh`가 되며 상위 16비트에는 영향을 주지 않음[span_6](start_span)[span_6](end_span).
+
+**4. What will be the value in EAX after the following lines execute?**[span_7](start_span)[span_7](end_span)
+* `10020001h`: `neg ax`는 하위 16비트 `FFFFh`(-1)의 부호를 반전시켜 `0001h`로 만듦[span_8](start_span)[span_8](end_span).
+
+**5. What will be the value of the Parity flag after the following lines execute?**[span_9](start_span)[span_9](end_span)
+* `0` (Clear): `al`의 값 1과 3을 더하면 4(`00000100b`)가 되며, 하위 8비트의 1의 개수가 홀수(1개)이므로 패리티 플래그는 0이 됨[span_10](start_span)[span_10](end_span).
+
+**6. What will be the value of EAX and the Sign flag after the following lines execute?**[span_11](start_span)[span_11](end_span)
+* EAX = `FFFFFFFFh`, Sign flag = `1`: 5에서 6을 뺀 결과는 -1(`FFFFFFFFh`)이며, 최상위 비트(부호 비트)가 1이므로 Sign 플래그가 1로 설정됨[span_12](start_span)[span_12](end_span).
+
+**7. In the following code, the value in AL is intended to be a signed byte. Explain how the Overflow flag helps, or does not help you, to determine whether the final value in AL falls within a valid signed range.**[span_13](start_span)[span_13](end_span)
+* 도움이 되지 않음: `130`(`82h`)은 8비트 부호 있는 정수에서 음수 `-126`으로 해석됨[span_14](start_span)[span_14](end_span). CPU는 `-1`(`FFh`)과 `-126`(`82h`)을 더한 결과인 `-127`(`81h`)을 유효한 8비트 음수로 인식하므로 오버플로우 플래그(OF)를 0으로 유지함[span_15](start_span)[span_15](end_span).
+
+---
+
+## Review Questions and Exercises
+
+**8. What value will RAX contain after the following instruction executes?**[span_16](start_span)[span_16](end_span)
+* `0000000044445555h`: 32비트 상수를 64비트 레지스터에 이동하면 상위 32비트는 0으로 지워짐[span_17](start_span)[span_17](end_span).
+
+**9. What value will RAX contain after the following instructions execute?**[span_18](start_span)[span_18](end_span)
+* `0000000084326732h`: 32비트 메모리 피연산자를 64비트 레지스터로 이동할 때 확장을 가정할 경우 상위 32비트가 0으로 채워짐[span_19](start_span)[span_19](end_span).
+
+**10. What value will EAX contain after the following instructions execute?**[span_20](start_span)[span_20](end_span)
+* `00035678h`: `WORD PTR dVal+2`에 의해 상위 16비트(`1234h`)가 `0003h`로 덮어쓰여 하위 16비트(`5678h`)와 결합됨[span_21](start_span)[span_21](end_span).
+
+**11. What will EAX contain after the following instructions execute?**[span_22](start_span)[span_22](end_span)
+* `12341237h`: 상위 16비트(`1234h`)에 3을 더한 `1237h`를 하위 16비트(`5678h`) 위치에 덮어씀[span_23](start_span)[span_23](end_span).
+
+**12. (Yes/No): Is it possible to set the Overflow flag if you add a positive integer to a negative integer?**[span_24](start_span)[span_24](end_span)
+* `No`[span_25](start_span)[span_25](end_span).
+
+**13. (Yes/No): Will the Overflow flag be set if you add a negative integer to a negative integer and produce a positive result?**[span_26](start_span)[span_26](end_span)
+* `Yes`[span_27](start_span)[span_27](end_span).
+
+**14. (Yes/No): Is it possible for the NEG instruction to set the Overflow flag?**[span_28](start_span)[span_28](end_span)
+* `Yes`[span_29](start_span)[span_29](end_span). (예: 8비트에서 가장 작은 음수 -128에 적용 시)
+
+**15. (Yes/No): Is it possible for both the Sign and Zero flags to be set at the same time?**[span_30](start_span)[span_30](end_span)
+* `No`[span_31](start_span)[span_31](end_span). (결과가 0이면 최상위 부호 비트도 0이 되므로 Sign 플래그가 설정될 수 없음)
+
+---
+
+### Questions 16-19 Variables
+```assembly
+.data
+var1 SBYTE -4,-2,3,1
+var2 WORD 1000h,2000h,3000h,4000h
+var3 SWORD -16,-42
+var4 DWORD 1,2,3,4,5
+
+16. For each of the following statements, state whether or not the instruction is valid:
+ * a. mov ax,var1: Invalid (크기 불일치 - 16비트와 8비트).
+ * b. mov ax,var2: Valid.
+ * c. mov eax,var3: Invalid (크기 불일치 - 32비트와 16비트).
+ * d. mov var2,var3: Invalid (메모리 간 직접 데이터 이동 불가).
+ * e. movzx ax,var2: Invalid (피연산자 크기가 동일함).
+ * f. movzx var2,al: Invalid (목적지가 레지스터여야 함).
+ * g. mov ds,ax: Valid.
+ * h. mov ds,1000h: Invalid (세그먼트 레지스터에 즉시값 직접 이동 불가).
+17. What will be the hexadecimal value of the destination operand after each of the following instructions execute in sequence?
+ * a. mov al,var1 : FCh (-4의 16진수 표현).
+ * b. mov ah,[var1+3] : 01h.
+18. What will be the value of the destination operand after each of the following instructions execute in sequence?
+ * a. mov ax,var2 : 1000h.
+ * b. mov ax,[var2+4] : 3000h (3번째 요소).
+ * c. mov ax,var3 : FFF0h (-16의 16진수 표현).
+ * d. mov ax,[var3-2] : 4000h (var2의 마지막 요소).
+19. What will be the value of the destination operand after each of the following instructions execute in sequence?
+ * a. mov edx,var4 : 00000001h.
+ * b. movzx edx,var2 : 00001000h.
+ * c. mov edx,[var4+4] : 00000002h (2번째 요소).
+ * d. movsx edx,var1 : FFFFFFFCh (-4의 부호 확장).
+
