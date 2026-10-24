@@ -1,0 +1,368 @@
+
+
+## 6.10.1 Short Answer
+
+### 1. 실행 후 BX 값
+
+```asm
+mov bx,0FFFFh
+and bx,6Bh
+```
+
+- **답:** `BX = 006Bh`
+- **풀이:** FFFFh는 모든 비트가 1이므로, AND하면 상대 값 006Bh가 그대로 남는다.
+
+### 2. 실행 후 BX 값
+
+```asm
+mov bx,91BAh
+and bx,92h
+```
+
+- **답:** `BX = 0092h`
+- **풀이:** 위 바이트는 `91h AND 00h = 00h`. 아래 바이트는 `BAh(1011 1010) AND 92h(1001 0010) = 1001 0010 = 92h`.
+
+### 3. 실행 후 BX 값
+
+```asm
+mov bx,0649Bh
+or  bx,3Ah
+```
+
+- **답:** `BX = 64BBh`
+- **풀이:** 위 바이트 64h는 그대로. 아래 바이트는 `9Bh(1001 1011) OR 3Ah(0011 1010) = 1011 1011 = BBh`.
+
+### 4. 실행 후 BX 값
+
+```asm
+mov bx,029D6h
+xor bx,8181h
+```
+
+- **답:** `BX = A857h`
+- **풀이:** `29h(0010 1001) XOR 81h(1000 0001) = 1010 1000 = A8h`, `D6h(1101 0110) XOR 81h = 0101 0111 = 57h`.
+
+### 5. 실행 후 EBX 값
+
+```asm
+mov ebx,0AFAF649Bh
+or  ebx,3A219604h
+```
+
+- **답:** `EBX = BFAFF69Fh`
+- **풀이:** 바이트별로 `AF OR 3A = BF`, `AF OR 21 = AF`, `64 OR 96 = F6`, `9B OR 04 = 9F`.
+
+### 6. 실행 후 RBX 값
+
+```asm
+mov rbx,0AFAF649Bh
+xor rbx,0FFFFFFFFh
+```
+
+- **답:** `RBX = FFFFFFFF50509B64h`
+- **풀이:** x86-64는 32비트 즉시값을 64비트로 **부호 확장**해서 쓴다. 0FFFFFFFFh는 FFFFFFFFFFFFFFFFh가 되어 64비트 전체가 뒤집힌다.
+  - 하위 32비트: `AFAF649Bh XOR FFFFFFFFh = 50509B64h`
+  - 상위 32비트: `00000000h XOR FFFFFFFFh = FFFFFFFFh`
+- **참고:** 교재 6.2.10의 "32비트 상수는 하위 32비트만 바꾼다"는 설명을 그대로 적용하면 `0000000050509B64h`가 나온다. 수업에서 어느 쪽을 정답으로 보는지 확인할 것.
+
+### 7. 표시한 곳의 AL 값 (2진수)
+
+```asm
+mov al,01101111b
+and al,00101101b   ; a.
+mov al,6Dh
+and al,4Ah         ; b.
+mov al,00001111b
+or  al,61h         ; c.
+mov al,94h
+xor al,37h         ; d.
+```
+
+| | 답 | 풀이 |
+| --- | --- | --- |
+| a | `00101101` | `01101111 AND 00101101` |
+| b | `01001000` | `6Dh(0110 1101) AND 4Ah(0100 1010)` |
+| c | `01101111` | `00001111 OR 61h(0110 0001)` |
+| d | `10100011` | `94h(1001 0100) XOR 37h(0011 0111)` |
+
+### 8. 표시한 곳의 AL 값 (16진수)
+
+```asm
+mov al,7Ah
+not al             ; a.
+mov al,3Dh
+and al,74h         ; b.
+mov al,9Bh
+or  al,35h         ; c.
+mov al,72h
+xor al,0DCh        ; d.
+```
+
+| | 답 | 풀이 |
+| --- | --- | --- |
+| a | `85h` | `0111 1010` → `1000 0101` (각 자리를 F에서 빼도 된다: F−7=8, F−A=5) |
+| b | `34h` | `3Dh(0011 1101) AND 74h(0111 0100) = 0011 0100` |
+| c | `BFh` | `9Bh(1001 1011) OR 35h(0011 0101) = 1011 1111` |
+| d | `AEh` | `72h(0111 0010) XOR DCh(1101 1100) = 1010 1110` |
+
+### 9. 표시한 곳의 CF, ZF, SF
+
+```asm
+mov  al,00001111b
+test al,00000010b  ; a.
+mov  al,00000110b
+cmp  al,00000101b  ; b.
+mov  al,00000101b
+cmp  al,00000111b  ; c.
+```
+
+| | CF | ZF | SF | 풀이 |
+| --- | --- | --- | --- | --- |
+| a | 0 | 0 | 0 | TEST는 항상 CF = 0. `00001111 AND 00000010 = 00000010` (0이 아니고 양수) |
+| b | 0 | 0 | 0 | `6 − 5 = 1`. 빌려오지 않음 |
+| c | 1 | 0 | 1 | `5 − 7 = −2 = FEh`. 작은 수 − 큰 수라 빌려옴(CF), 결과가 음수(SF) |
+
+### 10. ECX 값에 따라 분기하는 조건 점프
+
+- **답:** `JECXZ` (ECX = 0이면 점프)
+- **참고:** 16비트는 `JCXZ`, 64비트는 `JRCXZ`.
+
+### 11. JA와 JNBE는 ZF·CF에 어떻게 반응하는가
+
+- **답:** `CF = 0` **그리고** `ZF = 0`일 때 점프한다.
+- **풀이:** JA(위에 있다) = JNBE(아래도 아니고 같지도 않다). 아래면 CF = 1, 같으면 ZF = 1이므로 둘 다 0이어야 한다. 두 이름은 같은 기계어 명령이다.
+
+### 12. 최종 EDX 값
+
+```asm
+mov edx,1
+mov eax,7FFFh
+cmp eax,8000h
+jl  L1
+mov edx,0
+L1:
+```
+
+- **답:** `EDX = 1`
+- **풀이:** 32비트에서 7FFFh = 32767, 8000h = 32768로 둘 다 양수. signed로 32767 < 32768이므로 JL이 점프해 `mov edx,0`을 건너뛴다.
+
+### 13. 최종 EDX 값
+
+```asm
+mov edx,1
+mov eax,7FFFh
+cmp eax,8000h
+jb  L1
+mov edx,0
+L1:
+```
+
+- **답:** `EDX = 1`
+- **풀이:** unsigned로도 32767 < 32768이므로 JB가 점프한다.
+
+### 14. 최종 EDX 값
+
+```asm
+mov edx,1
+mov eax,7FFFh
+cmp eax,0FFFF8000h
+jl  L2
+mov edx,0
+L2:
+```
+
+- **답:** `EDX = 0`
+- **풀이:** 0FFFF8000h는 32비트 signed로 −32768. `32767 < −32768`은 거짓이므로 JL이 점프하지 않고 `mov edx,0`이 실행된다.
+
+### 15. (True/False) Target으로 점프하는가
+
+```asm
+mov eax,-30
+cmp eax,-50
+jg  Target
+```
+
+- **답:** True
+- **풀이:** JG는 signed 비교. −30 > −50이므로 점프한다.
+
+### 16. (True/False) Target으로 점프하는가
+
+```asm
+mov eax,-42
+cmp eax,26
+ja  Target
+```
+
+- **답:** True
+- **풀이:** JA는 unsigned 비교. −42 = FFFFFFD6h는 unsigned로 아주 큰 수라 26보다 크므로 점프한다.
+
+### 17. 실행 후 RBX 값
+
+```asm
+mov rbx,0FFFFFFFFFFFFFFFFh
+and rbx,80h
+```
+
+- **답:** `RBX = 0000000000000080h`
+- **풀이:** 80h는 최상위 비트가 0인 작은 상수라 부호 확장해도 윗부분이 0이다. 0과 AND된 윗부분은 모두 지워진다.
+
+### 18. 실행 후 RBX 값
+
+```asm
+mov rbx,0FFFFFFFFFFFFFFFFh
+and rbx,808080h
+```
+
+- **답:** `RBX = 0000000000808080h`
+- **풀이:** 17번과 같은 이유.
+
+### 19. 실행 후 RBX 값
+
+```asm
+mov rbx,0FFFFFFFFFFFFFFFFh
+and rbx,80808080h
+```
+
+- **답:** `RBX = FFFFFFFF80808080h`
+- **풀이:** 32비트 상수 80808080h는 최상위 비트가 1이라 FFFFFFFF80808080h로 부호 확장된다. 그래서 윗부분 F가 그대로 남는다. 교재 6.2.10 예제의 답과 같다.
+
+---
+
+## 6.10.2 Algorithm Workbench
+
+> 7~9번은 변수가 signed인지 문제에 나와 있지 않아서 교재 6.5.2 예제처럼 unsigned 점프(`JA`/`JBE`)로 작성했다. signed로 풀려면 `JA → JG`, `JBE → JLE`로 바꾸면 된다.
+
+### 1. AL의 ASCII 숫자를 이진값으로 바꾸는 한 줄 (이미 00h~09h면 그대로)
+
+```asm
+and al,0Fh     ; 위 4비트(3)를 지움: 37h('7') → 07h, 07h → 07h
+```
+
+- **풀이:** '0'~'9'는 30h~39h이므로 위 4비트만 지우면 0~9가 된다. 이미 00h~09h인 값은 위 4비트가 0이라 바뀌지 않는다.
+
+### 2. 32비트 메모리 피연산자의 패리티 계산 (B0 XOR B1 XOR B2 XOR B3)
+
+```asm
+mov al,BYTE PTR memVal
+xor al,BYTE PTR memVal+1
+xor al,BYTE PTR memVal+2
+xor al,BYTE PTR memVal+3   ; PF = 1이면 짝수 패리티, PF = 0이면 홀수 패리티
+```
+
+- **풀이:** 네 바이트를 XOR한 결과의 1의 개수 짝/홀이 32비트 전체의 짝/홀과 같다. 마지막 XOR이 PF를 설정한다.
+
+### 3. SetX에는 있고 SetY에는 없는 원소 (차집합)
+
+```asm
+mov eax,SetY
+not eax          ; Y의 여집합
+and eax,SetX     ; X AND (NOT Y)
+```
+
+### 4. DX(unsigned) ≤ CX이면 L1으로 점프
+
+```asm
+cmp dx,cx
+jbe L1
+```
+
+### 5. AX(signed) > CX이면 L2로 점프
+
+```asm
+cmp ax,cx
+jg  L2
+```
+
+### 6. AL의 비트 0, 1을 지운 뒤 결과가 0이면 L3, 아니면 L4
+
+```asm
+and al,11111100b   ; AND가 ZF를 설정한다
+jz  L3
+jmp L4
+```
+
+### 7. `if (val1 > ecx) AND (ecx > edx) X = 1 else X = 2`
+
+```asm
+    mov  eax,val1      ; 변수는 레지스터로 옮겨 비교
+    cmp  eax,ecx
+    jbe  L_else        ; val1 <= ecx → 첫 조건 거짓, 둘째는 볼 필요 없음
+    cmp  ecx,edx
+    jbe  L_else        ; ecx <= edx → 거짓
+    mov  X,1
+    jmp  next
+L_else:
+    mov  X,2
+next:
+```
+
+- **풀이:** 단락 평가(short-circuit). AND는 조건 하나라도 거짓이면 바로 else로 보낸다.
+
+### 8. `if (ebx > ecx) OR (ebx > val1) X = 1 else X = 2`
+
+```asm
+    cmp  ebx,ecx
+    ja   L_then        ; 첫 조건 참 → 둘째는 볼 필요 없음
+    cmp  ebx,val1
+    ja   L_then
+    mov  X,2           ; 둘 다 거짓
+    jmp  next
+L_then:
+    mov  X,1
+next:
+```
+
+- **풀이:** OR는 조건 하나라도 참이면 바로 then으로 보낸다.
+
+### 9. `if (ebx > ecx AND ebx > edx) OR (edx > eax) X = 1 else X = 2`
+
+```asm
+    cmp  ebx,ecx
+    jbe  L_or          ; AND의 첫 조건 거짓 → OR 오른쪽을 검사
+    cmp  ebx,edx
+    ja   L_then        ; AND 두 조건 모두 참 → 전체 참
+L_or:
+    cmp  edx,eax
+    ja   L_then        ; OR 오른쪽 참 → 전체 참
+    mov  X,2
+    jmp  next
+L_then:
+    mov  X,1
+next:
+```
+
+### 10. while 안의 if (A, B, N은 32비트 signed)
+
+```text
+while N > 0
+    if N != 3 AND (N < A OR N > B)
+        N = N - 2
+    else
+        N = N - 1
+end while
+```
+
+```asm
+    mov  eax,N         ; EAX가 N을 대신함
+top:
+    cmp  eax,0
+    jle  endwhile      ; NOT(N > 0) → 루프 탈출
+    cmp  eax,3
+    je   L_else        ; N == 3 → AND 전체가 거짓
+    cmp  eax,A
+    jl   L_then        ; N < A → OR 참 → 전체 참
+    cmp  eax,B
+    jle  L_else        ; N <= B → OR 둘 다 거짓
+L_then:
+    sub  eax,2         ; N = N - 2
+    jmp  top
+L_else:
+    dec  eax           ; N = N - 1
+    jmp  top           ; 루프 처음으로
+endwhile:
+    mov  N,eax         ; 최종값 저장
+```
+
+- **풀이:** while은 조건을 뒤집은 점프(`jle endwhile`)로 빠져나가고, 본문 끝의 `jmp top`으로 다시 검사한다. signed이므로 `JLE`, `JL`을 쓴다.
+- **확인 예:** A = 5, B = 10, N = 7이면 7(범위 안 → −1) → 6(−1) → 5(−1) → 4(4 < A → −2) → 2(−2) → 0에서 끝난다.
+````
