@@ -1,0 +1,186 @@
+## 8.10.1 Short Answer
+
+### 1. 스택 매개변수와 지역 변수가 있는 프로시저의 에필로그
+
+- **답:**
+
+```asm
+mov esp,ebp    ; 지역 변수 해제
+pop ebp        ; 호출한 쪽의 EBP 복원
+ret n          ; STDCALL이면 매개변수 크기 n바이트만큼 스택 정리 (예: ret 8)
+```
+
+- **풀이:** `mov esp,ebp` + `pop ebp`는 `LEAVE` 한 줄로 바꿀 수 있다. 레지스터를 PUSH해 두었다면 이 앞에서 역순으로 POP한다. C 호출 규약이면 `ret`만 쓰고 정리는 호출한 쪽이 한다.
+
+### 2. C 함수가 32비트 정수를 반환할 때 반환값의 위치
+
+- **답:** `EAX`
+
+### 3. STDCALL에서 프로시저 호출 후 스택을 정리하는 방법
+
+- **답:** 호출된 프로시저가 `RET n`으로 정리한다. RET에 정수를 주면 복귀한 뒤 ESP에 n을 더해 매개변수를 제거한다(예: 매개변수 2개 → `ret 8`).
+- **비교:** C 규약은 호출한 쪽이 CALL 다음에 `add esp,8`로 정리한다.
+
+### 4. LEA가 OFFSET보다 강력한 점
+
+- **답:** LEA는 **실행 중에 계산되는 주소**(간접 피연산자)도 구할 수 있다. 예: `lea esi,[ebp-30]`로 스택의 지역 배열 주소를 얻는다.
+- **풀이:** OFFSET은 어셈블할 때 이미 정해진 주소(전역 변수)만 구할 수 있다. 스택 위치는 실행해야 알 수 있어 `mov esi,OFFSET [ebp-30]`은 어셈블 오류다.
+
+### 5. 교재 C++ 예제에서 int 변수 하나가 쓰는 스택 공간
+
+- **답:** 4바이트 (32비트)
+- **풀이:** 스택의 한 칸은 기본 32비트라 각 변수 크기가 4의 배수로 올림된다. `int X`, `int Y` 두 개면 8바이트(`sub esp,8`), X는 `[EBP−4]`, Y는 `[EBP−8]`. (교재에서는 이 예제가 8.2.5 Local Variables에 있다.)
+
+### 6. C 호출 규약이 STDCALL보다 나은 점
+
+- **답:** 매개변수 개수가 바뀌는 **가변 인자 함수**를 만들 수 있다.
+- **풀이:** C 규약은 호출한 쪽이 스택을 정리하므로, 호출할 때마다 넘기는 인자 수가 달라도 된다. 대표적인 예가 `printf`. STDCALL은 프로시저 안의 `RET n`에 크기가 고정돼 있어 불가능하다.
+
+### 7. (True/False) PROC 지시어의 매개변수는 모두 한 줄에 써야 한다
+
+- **답:** False
+- **풀이:** PROC 뒤에 쉼표를 찍으면 여러 줄로 나눠 쓸 수 있다. 한 줄에 다 쓸 때만 PROC 뒤 쉼표를 생략할 수 있다.
+
+### 8. (True/False) WORD 배열 포인터를 기대하는 프로시저에 BYTE 배열 주소를 넘기면 어셈블러가 오류를 낸다
+
+- **답:** False
+- **풀이:** 어셈블러는 넘기는 포인터의 타입을 검사하지 않는다. 어셈블과 실행은 되지만, 프로시저가 바이트 배열을 워드 단위로 읽어 잘못된 결과가 나온다.
+
+### 9. (True/False) 참조 매개변수를 기대하는 프로시저에 즉시값을 넘기면 general-protection fault가 날 수 있다
+
+- **답:** True
+- **풀이:** 예를 들어 `INVOKE Sub2, 1000h`를 하면 프로시저가 1000h를 주소로 보고 그 메모리에 접근한다. 프로그램 영역 밖이라 보호 위반이 발생할 수 있다.
+
+---
+
+## 8.10.2 Algorithm Workbench
+
+### 1. AddThree 호출 후, EBP를 PUSH한 직후의 스택 프레임
+
+```asm
+push 10h
+push 20h
+push 30h
+call AddThree
+```
+
+| 위치 | 내용 |
+| --- | --- |
+| `[EBP + 16]` | 00000010h (처음 PUSH한 값) |
+| `[EBP + 12]` | 00000020h |
+| `[EBP + 8]` | 00000030h (마지막 PUSH한 값) |
+| `[EBP + 4]` | 복귀 주소 |
+| `[EBP]` | 저장된 EBP ← EBP, ESP |
+
+- `push ebp` 다음에 `mov ebp,esp`까지 실행하면 EBP와 ESP가 모두 저장된 EBP 칸을 가리킨다. 스택은 아래(낮은 주소)로 자라므로 먼저 PUSH한 값일수록 위(큰 오프셋)에 있다.
+
+### 2. 세 정수의 합을 EAX로 반환하는 AddThree
+
+```asm
+AddThree PROC
+    push ebp
+    mov  ebp,esp
+    mov  eax,[ebp+16]     ; 첫 번째로 PUSH된 값
+    add  eax,[ebp+12]
+    add  eax,[ebp+8]
+    pop  ebp
+    ret  12               ; STDCALL: 매개변수 3개 × 4바이트 정리
+AddThree ENDP
+```
+
+선언된 매개변수를 쓰면 MASM이 프롤로그·에필로그와 `ret 12`를 대신 만들어 준다.
+
+```asm
+AddThree PROC, val1:DWORD, val2:DWORD, val3:DWORD
+    mov  eax,val1
+    add  eax,val2
+    add  eax,val3
+    ret
+AddThree ENDP
+```
+
+### 3~7. 지역 변수 선언 (LOCAL은 PROC 바로 다음 줄에)
+
+```asm
+LOCAL pArray:PTR DWORD       ; 3. 더블워드 배열을 가리키는 포인터
+LOCAL buffer[20]:BYTE        ; 4. 20바이트 배열
+LOCAL pwArray:PTR WORD       ; 5. 16비트 unsigned 정수를 가리키는 포인터
+LOCAL myByte:SBYTE           ; 6. 8비트 signed 정수
+LOCAL myArray[20]:DWORD      ; 7. 더블워드 20개 배열
+```
+
+### 8. SetTextColor를 호출하는 SetColor (스택 매개변수 forecolor, backcolor)
+
+```asm
+SetColor PROC USES eax,
+    forecolor:DWORD, backcolor:DWORD
+    mov  eax,backcolor
+    shl  eax,4            ; 배경색 × 16
+    add  eax,forecolor    ; EAX = 글자색 + 배경색 × 16
+    call SetTextColor
+    ret
+SetColor ENDP
+
+; 호출 예
+INVOKE SetColor, yellow, blue
+```
+
+### 9. 지정한 색으로 문자 하나를 출력하는 WriteColorChar
+
+```asm
+WriteColorChar PROC USES eax,
+    char:BYTE, forecolor:DWORD, backcolor:DWORD
+    mov  eax,backcolor
+    shl  eax,4
+    add  eax,forecolor
+    call SetTextColor     ; 색 설정
+    mov  al,char
+    call WriteChar        ; AL의 문자 출력
+    ret
+WriteColorChar ENDP
+
+; 호출 예
+INVOKE WriteColorChar, 'A', white, red
+```
+
+### 10. DumpMem을 감싸는 DumpMemory (선언된 매개변수 + USES)
+
+```asm
+DumpMemory PROC USES esi ecx ebx,
+    address:DWORD,        ; 시작 주소
+    itemCount:DWORD,      ; 개수
+    componentSize:DWORD   ; 한 개의 크기
+    mov  esi,address          ; DumpMem 입력: ESI = 시작 주소
+    mov  ecx,itemCount        ;               ECX = 개수
+    mov  ebx,componentSize    ;               EBX = 단위 크기
+    call DumpMem
+    ret
+DumpMemory ENDP
+
+; 호출 예
+INVOKE DumpMemory, OFFSET array, LENGTHOF array, TYPE array
+```
+
+### 11. MultArray 선언과 PROTO
+
+```asm
+; 프로토타입 (INVOKE보다 앞, 보통 프로그램 맨 위)
+MultArray PROTO,
+    pArray1:PTR DWORD,    ; 첫 번째 배열 포인터
+    pArray2:PTR DWORD,    ; 두 번째 배열 포인터
+    count:DWORD           ; 원소 개수
+
+; 프로시저 선언 (매개변수 목록이 PROTO와 같아야 함)
+MultArray PROC USES esi edi ecx,
+    pArray1:PTR DWORD,
+    pArray2:PTR DWORD,
+    count:DWORD
+    ; ... 본문 ...
+    ret
+MultArray ENDP
+
+; 호출 예
+INVOKE MultArray, ADDR arrayA, ADDR arrayB, LENGTHOF arrayA
+```
+
+- **풀이:** PROTO는 PROC 줄을 복사해 PROC를 PROTO로 바꾸고 USES 목록을 뺀 형태다.
