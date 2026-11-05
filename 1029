@@ -1,0 +1,343 @@
+## 7.9.1 Short Answer
+
+### 1. 각 시프트·회전 후 AL 값
+
+```asm
+mov al,0D4h
+shr al,1    ; a.
+mov al,0D4h
+sar al,1    ; b.
+mov al,0D4h
+sar al,4    ; c.
+mov al,0D4h
+rol al,1    ; d.
+```
+
+D4h = `1101 0100`
+
+| | 답 | 풀이 |
+| --- | --- | --- |
+| a | `6Ah` | `0110 1010`: 오른쪽으로 1칸, 왼쪽은 0으로 채움 (CF = 0) |
+| b | `EAh` | `1110 1010`: 왼쪽을 부호 비트 1로 채움 |
+| c | `FDh` | `1111 1101`: 4칸 이동, 왼쪽 4비트를 1로 채움 |
+| d | `A9h` | `1010 1001`: 맨 왼쪽 1이 맨 오른쪽으로 돌아옴 (CF = 1) |
+
+### 2. 각 시프트·회전 후 AL 값
+
+```asm
+mov al,0D4h
+ror al,3    ; a.
+mov al,0D4h
+rol al,7    ; b.
+stc
+mov al,0D4h
+rcl al,1    ; c.
+stc
+mov al,0D4h
+rcr al,3    ; d.
+```
+
+| | 답 | 풀이 |
+| --- | --- | --- |
+| a | `9Ah` | `1101 0100`의 오른쪽 3비트 `100`이 맨 앞으로: `100 11010` = `1001 1010` |
+| b | `6Ah` | 8비트에서 왼쪽 7칸 회전 = 오른쪽 1칸 회전: `0110 1010` |
+| c | `A9h` (CF = 1) | CF(1)가 맨 오른쪽으로 들어오고, 맨 왼쪽 1이 CF로: `1010 1001` |
+| d | `3Ah` (CF = 1) | [CF=1][1101 0100]을 9비트로 오른쪽 3번 회전. 1번: EAh, CF=0 → 2번: 75h, CF=0 → 3번: `0011 1010` = 3Ah, CF=1 |
+
+### 3. MUL 후 AX와 DX
+
+```asm
+mov dx,0
+mov ax,222h
+mov cx,100h
+mul cx
+```
+
+- **답:** `DX = 0002h`, `AX = 2200h`
+- **풀이:** 222h × 100h = 22200h(100h를 곱하면 16진수로 0이 두 개 붙음). 16비트 MUL의 결과는 DX:AX에 나뉘어 들어간다.
+
+### 4. DIV 후 AX
+
+```asm
+mov ax,63h
+mov bl,10h
+div bl
+```
+
+- **답:** `AX = 0306h`
+- **풀이:** 8비트 나눗셈은 AX ÷ BL. 63h(99) ÷ 10h(16) = 몫 6, 나머지 3. 몫은 AL(06h), 나머지는 AH(03h).
+
+### 5. DIV 후 EAX와 EDX
+
+```asm
+mov eax,123400h
+mov edx,0
+mov ebx,10h
+div ebx
+```
+
+- **답:** `EAX = 00012340h`, `EDX = 00000000h`
+- **풀이:** 32비트 나눗셈은 EDX:EAX ÷ EBX. 123400h ÷ 10h는 16진수 맨 끝 0 하나를 떼는 것과 같아 몫 12340h, 나머지 0.
+
+### 6. DIV 후 AX와 DX
+
+```asm
+mov ax,4000h
+mov dx,500h
+mov bx,10h
+div bx
+```
+
+- **답:** 나눗셈 오버플로(divide overflow) 예외가 발생해 프로그램이 멈춘다. AX와 DX에 결과가 들어가지 않는다.
+- **풀이:** 피제수 DX:AX = 05004000h, ÷ 10h = 몫 500400h. 몫이 16비트(AX)에 들어가지 않는다. DX(0500h)가 나누는 수(0010h) 이상이면 항상 이렇게 된다.
+
+### 7. ADC 후 BX
+
+```asm
+mov bx,5
+stc
+mov ax,60h
+adc bx,ax
+```
+
+- **답:** `BX = 0066h`
+- **풀이:** ADC는 `목적지 = 목적지 + 원본 + CF`. STC로 CF = 1이고 MOV는 플래그를 바꾸지 않으므로 5 + 60h + 1 = 66h.
+
+### 8. 64비트 모드에서 다음 코드의 결과
+
+```asm
+.data
+dividend_hi QWORD 00000108h
+dividend_lo QWORD 33300020h
+divisor     QWORD 00000100h
+.code
+mov rdx,dividend_hi
+mov rax,dividend_lo
+div divisor
+```
+
+- **답:** 나눗셈 오버플로 예외가 발생해 프로그램이 멈춘다.
+- **풀이:** 피제수는 RDX:RAX = 108h × 2^64 + 33300020h. 100h로 나누면 몫이 10800000000333000h로 64비트(RAX)를 넘는다. RDX(108h)가 나누는 수(100h)보다 크기 때문이다.
+
+### 9. val1 − val2를 구하는 프로그램의 논리 오류 찾기
+
+```asm
+.data
+val1   QWORD 20403004362047A1h
+val2   QWORD 055210304A2630B2h
+result QWORD 0
+.code
+mov cx,8                 ; loop counter
+mov esi,val1             ; set index to start
+mov edi,val2
+clc                      ; clear Carry flag
+top:
+mov al,BYTE PTR[esi]     ; get first number
+sbb al,BYTE PTR[edi]     ; subtract second
+mov BYTE PTR[esi],al     ; store the result
+dec esi
+dec edi
+loop top
+```
+
+**오류**
+
+1. `mov esi,val1`, `mov edi,val2`: 변수의 **값**을 넣고 있다(게다가 64비트 → 32비트라 크기도 안 맞음). 주소를 넣어야 한다: `OFFSET val1`, `OFFSET val2`.
+2. `dec esi`, `dec edi`: 리틀 엔디언에서는 낮은 주소에 낮은 바이트가 있으므로, 맨 아래 바이트부터 **위로** 가며 빌림(CF)을 넘겨야 한다. `inc`로 바꾼다. (INC는 CF를 바꾸지 않아서 SBB의 빌림이 그대로 이어진다. `add esi,1`을 쓰면 CF가 지워지므로 안 된다.)
+3. `mov cx,8`: 32비트 모드의 LOOP는 **ECX** 전체를 쓰므로 ECX 상위 16비트에 남은 값 때문에 반복 횟수가 틀어진다. `mov ecx,8`.
+4. 결과를 val1에 덮어쓴다. 문제에 `result` 변수가 있으므로 결과는 result에 저장한다.
+
+**수정한 코드**
+
+```asm
+    mov  ecx,8                  ; 8바이트 = 8번
+    mov  esi,OFFSET val1
+    mov  edi,OFFSET val2
+    mov  ebx,OFFSET result
+    clc                         ; 첫 SBB 전 빌림 0
+top:
+    mov  al,BYTE PTR [esi]
+    sbb  al,BYTE PTR [edi]      ; 이전 자리의 빌림까지 함께 뺌
+    mov  BYTE PTR [ebx],al
+    inc  esi                    ; 다음(더 높은) 바이트로
+    inc  edi
+    inc  ebx
+    loop top                    ; result = 1AEE1FD3EBFA16EFh
+```
+
+### 10. 64비트 모드에서 실행 후 RAX
+
+```asm
+.data
+multiplicand QWORD 0001020304050000h
+.code
+imul rax,multiplicand,4
+```
+
+- **답:** `RAX = 0004080C10140000h`
+- **풀이:** 3피연산자 IMUL은 `RAX = multiplicand × 4`. 16진수 각 바이트를 4배 하면 01→04, 02→08, 03→0C, 04→10, 05→14 (자리 올림 없음).
+
+---
+
+## 7.9.2 Algorithm Workbench
+
+### 1. 시프트만으로 AX를 EAX로 부호 확장 (CWD 사용 금지)
+
+```asm
+shl eax,16     ; AX를 EAX 위쪽 16비트로 올림
+sar eax,16     ; 산술 시프트로 내리면 위쪽이 부호 비트로 채워짐
+```
+
+### 2. 회전 명령 없이 AL을 오른쪽으로 1비트 회전 (SHR + 조건 점프)
+
+```asm
+    shr al,1       ; 최하위 비트 → CF, 최상위 비트 = 0
+    jnc next       ; 빠져나간 비트가 0이면 끝
+    or  al,80h     ; 1이었으면 최상위 비트를 1로
+next:
+```
+
+### 3. 논리 시프트로 EAX × 16
+
+```asm
+shl eax,4      ; 2^4 = 16
+```
+
+### 4. 논리 시프트로 EBX ÷ 4
+
+```asm
+shr ebx,2      ; 2^2 = 4 (unsigned 나눗셈)
+```
+
+### 5. 회전 한 번으로 DL의 상위·하위 4비트 교환
+
+```asm
+ror dl,4       ; rol dl,4도 같은 결과
+```
+
+### 6. SHLD 한 번으로 AX의 최상위 비트를 DX 최하위로 넣으며 DX를 왼쪽으로 1칸
+
+```asm
+shld dx,ax,1
+```
+
+### 7. 메모리 3바이트를 오른쪽으로 1비트 시프트
+
+교재 7.2.1처럼 리틀 엔디언(가장 높은 주소가 가장 높은 자리)으로 보고, **가장 높은 바이트부터** 시프트해 CF로 비트를 넘긴다.
+
+```asm
+.data
+byteArray BYTE 81h,20h,33h
+.code
+mov esi,OFFSET byteArray
+shr BYTE PTR [esi+2],1     ; 가장 높은 바이트: 최하위 비트 → CF
+rcr BYTE PTR [esi+1],1     ; CF가 최상위로 들어오고 최하위 → CF
+rcr BYTE PTR [esi],1       ; 결과: 40h, 90h, 19h
+```
+
+검산: 정수 332081h를 1비트 오른쪽 시프트하면 199040h → 바이트 순서 40h, 90h, 19h.
+
+### 8. 메모리 3워드를 왼쪽으로 1비트 시프트
+
+왼쪽 시프트는 반대로 **가장 낮은 워드부터** 시작한다.
+
+```asm
+.data
+wordArray WORD 810Dh,0C064h,93ABh
+.code
+mov esi,OFFSET wordArray
+shl WORD PTR [esi],1       ; 810Dh → 021Ah, CF = 1
+rcl WORD PTR [esi+2],1     ; C064h → 80C9h, CF = 1
+rcl WORD PTR [esi+4],1     ; 93ABh → 2757h, CF = 1
+```
+
+### 9. 5 × 3을 16비트 변수 val1에 저장
+
+```asm
+mov ax,5
+mov bx,3
+mul bx          ; DX:AX = 15
+mov val1,ax
+```
+
+### 10. 276 ÷ 10을 16비트 변수 val1에 저장
+
+```asm
+mov dx,0        ; 16비트 DIV는 DX:AX를 나누므로 DX를 0으로
+mov ax,276
+mov bx,10
+div bx          ; AX = 27(몫), DX = 6(나머지)
+mov val1,ax
+```
+
+### 11. `val1 = (val2 * val3) / (val4 - 3)` (32비트 unsigned)
+
+```asm
+mov eax,val2
+mul val3        ; EDX:EAX = val2 * val3
+mov ebx,val4
+sub ebx,3       ; EBX = val4 - 3
+div ebx         ; EAX = 몫 (EDX:EAX ÷ EBX)
+mov val1,eax
+```
+
+### 12. `val1 = (val2 / val3) * (val1 + val2)` (32비트 signed)
+
+```asm
+mov  eax,val2
+cdq             ; EAX를 EDX:EAX로 부호 확장 (IDIV 전 필수)
+idiv val3       ; EAX = val2 / val3
+mov  ebx,val1   ; val1을 덮어쓰기 전에 먼저 읽음
+add  ebx,val2   ; EBX = val1 + val2
+imul ebx        ; EDX:EAX = EAX * EBX
+mov  val1,eax
+```
+
+### 13. AL(0~99)을 10진수로 출력하는 showDecimal8 (WriteChar만 사용)
+
+```asm
+showDecimal8 PROC USES eax ebx
+    mov  ah,0          ; AX = AL
+    mov  bl,10
+    div  bl            ; AL = 십의 자리, AH = 일의 자리
+    add  ax,3030h      ; 두 자리 모두 ASCII로 ('0' = 30h)
+    call WriteChar     ; 십의 자리 출력 (WriteChar는 AL을 출력)
+    mov  al,ah
+    call WriteChar     ; 일의 자리 출력
+    ret
+showDecimal8 ENDP
+```
+
+- 65를 넣으면 "65", 7을 넣으면 "07"이 출력된다(한 자리 수는 앞에 0이 붙음).
+
+### 14. (Challenge) AX = 0072h, AC = 1일 때 AAA의 결과
+
+- **답:** `AX = 0108h`, `CF = 1`, `AF = 1`
+- **풀이:** Intel 매뉴얼의 AAA 동작은 "AL의 하위 4비트 > 9 이거나 AF = 1이면 AX에 106h를 더하고 AF, CF를 1로. 마지막에 AL의 상위 4비트를 지운다".
+  - AF = 1이므로 AX = 0072h + 0106h = 0178h
+  - AL AND 0Fh → AL = 08h → AX = 0108h
+- **의미:** 예를 들어 '9' + '9' = 39h + 39h = 72h이고, 이때 하위 자리 9 + 9에서 AC가 생긴다. AAA가 이를 언팩 BCD 두 자리 AH = 1, AL = 8, 즉 10진수 **18**로 고쳐 준다.
+
+### 15. (Challenge) SUB, MOV, AND만으로 x = n mod y (y는 2의 거듭제곱)
+
+```asm
+mov eax,y
+sub eax,1       ; y - 1 = 하위 비트 마스크 (예: y = 8 → 00000111b)
+and eax,n       ; n AND (y - 1) = n mod y
+mov x,eax
+```
+
+- **풀이:** y = 2^k이면 n을 y로 나눈 나머지는 n의 하위 k비트와 같다. 예: 37 mod 8 → 100101b AND 000111b = 101b = 5.
+
+### 16. (Challenge) SAR, ADD, XOR만으로 EAX의 절댓값 (조건 점프 없이)
+
+```asm
+xor edx,edx     ; EDX = 0
+add edx,eax     ; EDX = EAX (MOV 없이 복사)
+sar edx,31      ; 양수면 00000000h, 음수면 FFFFFFFFh (부호 비트로 가득 채움)
+add eax,edx     ; 음수면 x - 1, 양수면 그대로
+xor eax,edx     ; 음수면 NOT(x - 1) = -x, 양수면 0과 XOR → 그대로
+```
+
+- **풀이:** 2의 보수에서 −x = NOT(x − 1)이다. 음수일 때만 "−1을 더하고 모든 비트를 뒤집기"가 일어나도록 EDX를 0 또는 전부 1인 마스크로 만들었다. 예: −5 → −6 → NOT = 5.
+- **참고:** −2147483648(80000000h)은 양수로 표현할 수 없어 그대로 남는다.
