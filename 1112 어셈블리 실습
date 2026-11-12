@@ -1,86 +1,80 @@
 
-OPTION CASEMAP:NONE
+.386
+.model flat, stdcall
+.stack 4096
 
-EXTERN scanf_s:PROC
-EXTERN printf:PROC
+scanf_s PROTO C :PTR BYTE, :PTR DWORD
+printf  PROTO C :PTR BYTE, :VARARG
 
 .data
-    inputMsg  db "Enter 5 integers:", 13, 10, 0
-    promptMsg db "Number %d: ", 0
-    inputFmt  db "%d", 0
-    resultMsg db "Average = %.2f", 13, 10, 0
-    five      REAL8 5.0
+    inputMsg  BYTE "Enter 5 integers:", 13, 10, 0
+    promptMsg BYTE "Number %d: ", 0
+    inputFmt  BYTE "%d", 0
+    resultMsg BYTE 13, 10, "Average = %.2f", 13, 10, 0
+    errorMsg  BYTE "Invalid input. Please enter an integer.", 13, 10, 0
+
+    number    SDWORD ?
+    count     DWORD 1
+
+    ; 64-bit signed sum
+    sumValue  QWORD 0
+
+    five      SDWORD 5
+    average   REAL8 ?
 
 .code
-main PROC
 
-    ; Stack allocation (shadow space + local variables)
-    sub rsp, 72
+main PROC C
 
-    ; Initialize sum and counter
-    mov DWORD PTR [rsp+40], 0
-    mov DWORD PTR [rsp+44], 1
-
-    ; Print input message
-    lea rcx, inputMsg
-    call printf
+    ; Display input message
+    INVOKE printf, ADDR inputMsg
 
 INPUT_LOOP:
 
-    ; Display input number
-    mov edx, DWORD PTR [rsp+44]
-    lea rcx, promptMsg
-    call printf
+    ; Display input prompt
+    INVOKE printf, ADDR promptMsg, count
 
-    ; Read integer
-    lea rcx, inputFmt
-    lea rdx, [rsp+48]
-    call scanf_s
+    ; Read one integer
+    INVOKE scanf_s, ADDR inputFmt, ADDR number
 
-    ; Add input to sum
-    mov eax, DWORD PTR [rsp+48]
-    add DWORD PTR [rsp+40], eax
+    ; Check input result
+    cmp eax, 1
+    jne INPUT_ERROR
 
-    ; Increase counter
-    inc DWORD PTR [rsp+44]
+    ; Add signed 32-bit integer to 64-bit sum
+    mov eax, number
+    cdq
+    add DWORD PTR sumValue, eax
+    adc DWORD PTR sumValue+4, edx
 
-    ; Repeat until 5 numbers are entered
-    cmp DWORD PTR [rsp+44], 6
+    ; Increment counter
+    inc count
+
+    ; Repeat until five integers are entered
+    cmp count, 6
     jl INPUT_LOOP
 
-    ; Calculate average
-    cvtsi2sd xmm0, DWORD PTR [rsp+40]
-    divsd xmm0, five
+    ; Calculate average using x87 FPU
+    fild QWORD PTR sumValue
+    fidiv DWORD PTR five
+    fstp QWORD PTR average
 
-    ; Print average
-    lea rcx, resultMsg
-    mov eax, 1
-    call printf
+    ; Display average
+    INVOKE printf, ADDR resultMsg, DWORD PTR average, DWORD PTR average+4
 
-    ; Restore stack
-    add rsp, 72
-
-    ; Return 0
+    ; Return success
     xor eax, eax
     ret
 
+INPUT_ERROR:
+
+    INVOKE printf, ADDR errorMsg
+
+    ; Return failure
+    mov eax, 1
+    ret
+
 main ENDP
-END
 
----------------------실행 결과 예시
-Enter 5 integers:
-Number 1: 10
-Number 2: 20
-Number 3: 30
-Number 4: 40
-Number 5: 50
+END main
 
-Average = 30.00
-
-<계산 과정>
-
-합계: 10 + 20 + 30 + 40 + 50 = 150
-
-평균: 150 ÷ 5 = 30
-
-출력: 30.00
