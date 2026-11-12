@@ -1,31 +1,23 @@
-Assembly Language - Average of Five Numbers(다섯 숫자 평균)
-1. Project Overview
+Assembly Language - Average of Five Numbers
+1. 프로젝트 소개 (Project Overview)
 
-This project is an Assembly Language program developed using Microsoft Visual Studio and MASM (Microsoft Macro Assembler).
+이 프로젝트는 Assembly Language를 사용하여 사용자로부터 정수 5개를 입력받고, 입력받은 숫자의 평균을 계산하여 출력하는 프로그램입니다.
 
-The purpose of this program is to receive five integers from the user, calculate their average, and display the result.
+Microsoft Visual Studio와 MASM(Microsoft Macro Assembler)을 사용하여 구현하였습니다.
 
-2. Development Environment
+2. 개발 환경 (Development Environment)
 IDE: Microsoft Visual Studio
 Language: Assembly Language
-Assembler: MASM (Microsoft Macro Assembler)
+Assembler: MASM
 Platform: x64
 Runtime Library: C Runtime Library
-3. Program Features
-Receive five integers from the user.
-Calculate the sum of the five integers.
-Divide the sum by 5 to calculate the average.
-Display the average with two decimal places.
-4. Algorithm
-Initialize the sum to 0.
-Initialize the input counter to 1.
-Receive an integer from the user.
-Add the input integer to the sum.
-Increase the counter by 1.
-Repeat steps 3-5 until five integers have been entered.
-Divide the sum by 5.
-Display the calculated average.
-5. Example Output
+3. 프로그램 기능 (Program Features)
+사용자로부터 정수 5개를 입력받습니다.
+입력받은 숫자 5개의 합계를 계산합니다.
+합계를 5로 나누어 평균을 계산합니다.
+계산된 평균을 소수점 둘째 자리까지 출력합니다.
+4. 실행 결과 (Execution Result)
+입력 예시
 text
 Enter 5 integers:
 Number 1: 10
@@ -34,29 +26,70 @@ Number 3: 30
 Number 4: 40
 Number 5: 50
 
+출력 결과
+text
 Average = 30.00
 
-6. Instructions Used
-Instruction	Description
-MOV	Move data
-ADD	Add two values
-INC	Increment by one
-CMP	Compare two values
-JL	Jump if less
-CVTSI2SD	Convert integer to double
-DIVSD	Divide floating-point values
-CALL	Call a function
-RET	Return from a procedure
-7. Expected Result
+다른 실행 예시
+text
+Enter 5 integers:
+Number 1: 5
+Number 2: 10
+Number 3: 15
+Number 4: 20
+Number 5: 25
 
-The program successfully receives five integers, calculates their sum, divides the sum by five, and displays the average with two decimal places.
+Average = 15.00
 
-8. Files
+5. 평균 계산 과정 (Calculation Process)
+
+첫 번째 실행 예시를 기준으로 계산하면 다음과 같습니다.
+
+입력값: 10, 20, 30, 40, 50
+합계: 10 + 20 + 30 + 40 + 50 = 150
+평균: 150 / 5 = 30
+
+따라서 최종 출력값은 다음과 같습니다.
+
+Average = 30.00
+
+6. 사용한 어셈블리 명령어 (Assembly Instructions)
+명령어	기능
+MOV	데이터 이동
+ADD	두 값 더하기
+INC	값 1 증가
+CMP	두 값 비교
+JL	작을 경우 점프
+CVTSI2SD	정수를 실수로 변환
+DIVSD	실수 나눗셈
+CALL	함수 호출
+RET	함수 종료 및 복귀
+7. 알고리즘 (Algorithm)
+합계를 저장할 변수를 0으로 초기화합니다.
+반복 횟수를 1로 설정합니다.
+사용자로부터 정수 하나를 입력받습니다.
+입력받은 숫자를 합계에 더합니다.
+반복 횟수를 1 증가시킵니다.
+숫자 5개를 입력받을 때까지 반복합니다.
+최종 합계를 5로 나눕니다.
+계산된 평균을 출력합니다.
+8. 프로젝트 파일 구조 (Project Structure)
 text
 Assembly-Average/
+│
 ├── main.asm
 └── README.md
 
-9. Author
+9. 실행 방법 (How to Run)
+Microsoft Visual Studio를 실행합니다.
+C++ 콘솔 프로젝트를 생성합니다.
+MASM 빌드 지원을 활성화합니다.
+main.asm 파일을 프로젝트에 추가합니다.
+플랫폼을 x64로 설정합니다.
+프로젝트를 빌드하고 실행합니다.
+정수 5개를 입력하고 평균 결과를 확인합니다.
+10. 결론 (Conclusion)
 
-Assembly Language Assignment
+이번 프로젝트를 통해 Assembly Language의 기본적인 데이터 처리와 산술 연산을 학습하였습니다.
+
+특히 MOV, ADD, CMP, JL 등의 명령어를 활용하여 데이터를 처리하고 반복문을 구현하였으며, 입력받은 다섯 숫자의 평균을 계산하는 과정을 이해할 수 있었습니다.
