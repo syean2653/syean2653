@@ -1,0 +1,86 @@
+
+OPTION CASEMAP:NONE
+
+EXTERN scanf_s:PROC
+EXTERN printf:PROC
+
+.data
+    inputMsg  db "Enter 5 integers:", 13, 10, 0
+    promptMsg db "Number %d: ", 0
+    inputFmt  db "%d", 0
+    resultMsg db "Average = %.2f", 13, 10, 0
+    five      REAL8 5.0
+
+.code
+main PROC
+
+    ; Stack allocation (shadow space + local variables)
+    sub rsp, 72
+
+    ; Initialize sum and counter
+    mov DWORD PTR [rsp+40], 0
+    mov DWORD PTR [rsp+44], 1
+
+    ; Print input message
+    lea rcx, inputMsg
+    call printf
+
+INPUT_LOOP:
+
+    ; Display input number
+    mov edx, DWORD PTR [rsp+44]
+    lea rcx, promptMsg
+    call printf
+
+    ; Read integer
+    lea rcx, inputFmt
+    lea rdx, [rsp+48]
+    call scanf_s
+
+    ; Add input to sum
+    mov eax, DWORD PTR [rsp+48]
+    add DWORD PTR [rsp+40], eax
+
+    ; Increase counter
+    inc DWORD PTR [rsp+44]
+
+    ; Repeat until 5 numbers are entered
+    cmp DWORD PTR [rsp+44], 6
+    jl INPUT_LOOP
+
+    ; Calculate average
+    cvtsi2sd xmm0, DWORD PTR [rsp+40]
+    divsd xmm0, five
+
+    ; Print average
+    lea rcx, resultMsg
+    mov eax, 1
+    call printf
+
+    ; Restore stack
+    add rsp, 72
+
+    ; Return 0
+    xor eax, eax
+    ret
+
+main ENDP
+END
+
+---------------------실행 결과 예시
+Enter 5 integers:
+Number 1: 10
+Number 2: 20
+Number 3: 30
+Number 4: 40
+Number 5: 50
+
+Average = 30.00
+
+<계산 과정>
+
+합계: 10 + 20 + 30 + 40 + 50 = 150
+
+평균: 150 ÷ 5 = 30
+
+출력: 30.00
