@@ -130,7 +130,7 @@ Assembly-Student-Info/
 
 또한 GetStdHandle을 이용한 콘솔 핸들 관리와 ExitProcess를 통한 프로그램 종료 과정을 학습하였습니다.
 
-
+--------------------------------------------------------
 #2
 Assembly Language - Average of Five Numbers
 1. 프로젝트 소개 (Project Overview)
