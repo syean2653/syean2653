@@ -1,0 +1,244 @@
+# Chapter 9. Strings and Arrays — Review Questions and Exercises 풀이
+
+> 교재: Kip Irvine, *Assembly Language for x86 Processors*, 7th Edition, 9.9절
+> 문제 문장은 교재 원문 대신 한국어로 요약했습니다.
+
+**공통 요령**
+
+| 명령 | 하는 일 | 쓰는 레지스터 |
+| --- | --- | --- |
+| `MOVSB/W/D` | [ESI]를 [EDI]로 복사 | ESI, EDI |
+| `CMPSB/W/D` | [ESI]와 [EDI]를 비교 | ESI, EDI |
+| `SCASB/W/D` | AL/AX/EAX와 [EDI]를 비교 | EDI |
+| `STOSB/W/D` | AL/AX/EAX를 [EDI]에 저장 | EDI |
+| `LODSB/W/D` | [ESI]를 AL/AX/EAX로 읽기 | ESI |
+
+- 한 번 실행할 때마다 ESI/EDI가 B는 1, W는 2, D는 4만큼 움직인다. **DF = 0(`CLD`)이면 증가, DF = 1(`STD`)이면 감소.**
+- `REP`: ECX > 0인 동안 반복. `REPE`/`REPZ`: 같은 동안(ZF = 1) 반복. `REPNE`/`REPNZ`: 다른 동안(ZF = 0) 반복.
+
+---
+
+## 9.9.1 Short Answer
+
+### 1. 문자열 명령에서 인덱스 레지스터를 뒤로(감소) 움직이게 하는 DF 값
+
+- **답:** DF = 1 (set). `STD`로 설정한다.
+
+### 2. 반복 접두사와 STOSW를 쓸 때 인덱스 레지스터에 더하거나 빼는 값
+
+- **답:** 2 (워드 = 2바이트)
+
+### 3. CMPS 명령이 헷갈리는(ambiguous) 점
+
+- **답:** 비교 방향이 일반 `CMP`와 반대로 느껴진다. CMPS는 **ESI가 가리키는 원본에서 EDI가 가리키는 목적지를 빼는 것처럼** 플래그를 설정한다([ESI] − [EDI]). 보통 "목적지, 원본" 순서에 익숙하기 때문에 어느 쪽이 기준인지 착각하기 쉽다.
+- **예:** 교재 예제에서 `cmpsd` 다음의 `ja L1`은 "source([ESI]) > target([EDI])이면 점프"를 뜻한다.
+
+### 4. DF = 0이고 SCASB가 일치하는 문자를 찾았을 때 EDI의 위치
+
+- **답:** 일치한 문자의 **한 칸 뒤**. 일치한 문자를 가리키게 하려면 `dec edi`를 한다.
+
+### 5. 배열에서 특정 문자가 처음 나오는 곳을 찾을 때 가장 알맞은 반복 접두사
+
+- **답:** `REPNE` (= `REPNZ`). 같지 않은 동안 계속 찾다가 일치하면 멈춘다.
+
+### 6. 9.3절 Str_trim이 쓰는 DF 값
+
+- **답:** 정할 필요가 없다. Str_trim은 문자열 명령(SCASB 등)을 쓰지 않고 `dec edi`로 직접 뒤로 이동하므로 DF와 관계없다.
+- **참고:** 문자열 명령으로 뒤에서부터 훑는 방식으로 바꾼다면 `STD`(DF = 1)를 써야 한다.
+
+### 7. Str_trim이 JNE를 쓰는 이유
+
+- **답:** 문자열 끝에서 앞으로 오면서, **지울 문자가 아닌 문자를 처음 만나면** 루프를 끝내기 위해서다. 그 문자 바로 뒤(`[edi+1]`)에 null을 넣어 뒤쪽 문자들을 잘라 낸다.
+
+### 8. Str_ucase에서 문자열에 숫자가 있으면?
+
+- **답:** 바뀌지 않고 그대로 남는다. Str_ucase는 'a'~'z' 범위만 대문자로 바꾸고(`JB`/`JA`로 범위 밖은 건너뜀), 숫자는 그 범위 밖이다.
+
+### 9. Str_length를 SCASB로 만든다면 가장 알맞은 반복 접두사
+
+- **답:** `REPNE` (= `REPNZ`). AL = 0으로 두고 null 바이트를 찾을 때까지 반복한다.
+
+### 10. 그때 길이를 계산해 돌려주는 방법
+
+```asm
+Str_length PROC USES ecx edi,
+    pString:PTR BYTE
+    mov  edi,pString
+    mov  al,0            ; 찾을 값 = null
+    mov  ecx,-1          ; 최대 반복 횟수 (FFFFFFFFh)
+    cld
+    repne scasb          ; null을 찾을 때까지 반복
+    mov  eax,edi
+    sub  eax,pString     ; (null 다음 위치) - (시작 위치)
+    dec  eax             ; null 자신은 길이에서 뺀다
+    ret                  ; EAX = 길이
+Str_length ENDP
+```
+
+- **풀이:** SCASB가 null을 찾으면 EDI는 null 한 칸 뒤를 가리킨다. 그래서 "EDI − 시작 주소 − 1"이 문자 수다.
+
+### 11. 원소 1,024개 배열에서 이진 탐색의 최대 비교 횟수
+
+- **답:** 10회 (교재 표 9-6)
+- **풀이:** 한 번 비교할 때마다 범위가 반으로 줄어든다. 2^10 = 1,024이므로 log₂ 1024 = 10.
+- **참고:** 엄밀히 세면 범위가 1개로 줄어든 뒤 마지막 확인까지 ⌊log₂ n⌋ + 1 = 11회가 될 수 있다. 같은 표의 65,536 → 17도 이 식을 따른다. 시험에서는 교재 표의 10을 쓰는 것이 안전하다.
+
+### 12. 9.5절 FillArray에서 CLD가 필요한 이유
+
+- **답:** FillArray는 `STOSD`로 배열에 값을 저장한다. DF = 0이어야 EDI가 **증가**하며 배열 앞에서 뒤로 채워진다. DF가 1로 남아 있으면 EDI가 감소해서 배열 앞쪽 바깥 메모리를 덮어쓴다.
+
+### 13. BinarySearch에서 레이블 L2의 문장을 지워도 되는 이유
+
+- **답:** L2의 `cmp edx,edi`는 바로 앞의 `cmp edx,edi`와 똑같은 비교다. 그 사이에 있는 `jge L2`는 플래그를 바꾸지 않으므로, 이전 비교의 플래그가 그대로 남아 있어 `jle L3`가 그것을 그대로 쓸 수 있다. 그래서 교재 코드에도 "optional" 주석이 붙어 있다.
+
+### 14. BinarySearch에서 레이블 L4의 문장을 없애는 방법
+
+- **답:** L4에는 `jmp L1` 한 줄뿐이다. L4로 점프하는 두 곳의 `jmp L4`를 `jmp L1`로 바꾸면 L4를 거칠 필요가 없어 지울 수 있다.
+
+---
+
+## 9.9.2 Algorithm Workbench
+
+### 1. 32비트 base-index 피연산자 예
+
+```asm
+mov eax,[ebx+esi]          ; base(EBX) + index(ESI)
+```
+
+### 2. 32비트 base-index-displacement 피연산자 예
+
+```asm
+mov eax,array[ebx+esi]     ; displacement(array) + base(EBX) + index(ESI)
+mov eax,[ebx+esi+4]        ; 상수 displacement도 가능
+```
+
+### 3. 3행 × 4열 더블워드 2차원 배열에서 1행(두 번째 행) 2열(세 번째 열) 접근 (0부터 셈)
+
+```asm
+mov esi,16                     ; 행 오프셋 = 1행 × (4열 × 4바이트)
+mov edi,2                      ; 열 번호
+mov eax,array[esi + edi*4]     ; array + 16 + 8 = array + 24바이트
+```
+
+- **풀이:** 한 행은 4개 × 4바이트 = 16바이트. 행 하나를 넘어가려면 16을 더하고, 열은 번호에 4(DWORD 크기)를 곱한다.
+
+### 4. CMPSW로 16비트 배열 sourcew와 targetw 비교
+
+```asm
+    mov  esi,OFFSET sourcew
+    mov  edi,OFFSET targetw
+    mov  ecx,LENGTHOF sourcew   ; 비교할 원소 수
+    cld                         ; 앞에서 뒤로
+    repe cmpsw                  ; 같은 동안 반복
+    je   AllEqual               ; 끝까지 같으면 ZF = 1
+    ; 여기로 오면 다른 원소가 있음 (ESI, EDI는 그 다음 원소를 가리킴)
+```
+
+### 5. SCASW로 wordArray에서 0100h를 찾아 그 원소의 주소를 EAX에
+
+```asm
+    mov  edi,OFFSET wordArray
+    mov  ax,0100h               ; 찾을 값
+    mov  ecx,LENGTHOF wordArray
+    cld
+    repne scasw                 ; 일치할 때까지 반복
+    jnz  NotFound               ; 끝까지 못 찾으면 ZF = 0
+    sub  edi,2                  ; EDI가 일치 원소의 다음을 가리키므로 2바이트 되돌림
+    mov  eax,edi                ; EAX = 일치한 원소의 주소
+```
+
+### 6. Str_compare로 두 문자열 중 큰 것을 화면에 출력
+
+```asm
+    INVOKE Str_compare, ADDR string1, ADDR string2
+    ja   S1Bigger               ; string1 > string2 (CF = 0, ZF = 0)
+    mov  edx,OFFSET string2     ; string2가 크거나 같음
+    jmp  Show
+S1Bigger:
+    mov  edx,OFFSET string1
+Show:
+    call WriteString
+    call Crlf
+```
+
+- **풀이:** Str_compare는 값을 돌려주지 않고 CMP처럼 플래그만 설정한다. string1 < string2면 CF = 1, 같으면 ZF = 1, 크면 둘 다 0이므로 JA를 쓴다.
+
+### 7. Str_trim으로 끝에 붙은 '@'를 모두 지우기
+
+```asm
+.data
+myString BYTE "Hello@@@",0
+.code
+INVOKE Str_trim, ADDR myString, '@'     ; myString = "Hello"
+```
+
+### 8. Str_ucase를 고쳐 소문자로 바꾸는 Str_lcase
+
+```asm
+Str_lcase PROC USES eax esi,
+    pString:PTR BYTE
+    mov  esi,pString
+L1: mov  al,[esi]                      ; 문자 하나
+    cmp  al,0                          ; 문자열 끝?
+    je   L3
+    cmp  al,'A'                        ; 'A'보다 작으면 건너뜀
+    jb   L2
+    cmp  al,'Z'                        ; 'Z'보다 크면 건너뜀
+    ja   L2
+    or   BYTE PTR [esi],00100000b      ; 비트 5를 켜면 소문자
+L2: inc  esi
+    jmp  L1
+L3: ret
+Str_lcase ENDP
+```
+
+- **바뀐 곳:** 비교 범위 'a'~'z' → 'A'~'Z', `and ...,11011111b`(비트 5 끄기) → `or ...,00100000b`(비트 5 켜기).
+
+### 9. 64비트 Str_trim
+
+교재 9.3.7의 64비트 프로시저처럼 레지스터로 매개변수를 받는다. 64비트 Str_length는 RCX로 주소를 받아 RAX로 길이를 돌려준다.
+
+```asm
+;-------------------------------------------------------
+; Str_trim (64비트)
+; 문자열 끝에 붙은 지정 문자를 모두 지운다.
+; Receives: RCX = 문자열 주소, DL = 지울 문자
+; Returns:  없음
+;-------------------------------------------------------
+Str_trim PROC USES rax rcx rdi
+    mov  rdi,rcx            ; RDI = 문자열 시작
+    call Str_length         ; RAX = 길이 (RCX의 문자열)
+    cmp  rax,0
+    je   L3                 ; 빈 문자열이면 끝
+    mov  rcx,rax            ; RCX = 길이 (64비트 LOOP 카운터)
+    dec  rax
+    add  rdi,rax            ; RDI = 마지막 문자
+L1: mov  al,[rdi]
+    cmp  al,dl              ; 지울 문자인가?
+    jne  L2                 ; 아니면 그 뒤에 null을 넣으러
+    dec  rdi                ; 맞으면 한 칸 앞으로
+    loop L1
+L2: mov  BYTE PTR [rdi+1],0 ; null 삽입
+L3: ret
+Str_trim ENDP
+```
+
+### 10. 64비트 base-index 피연산자 예
+
+```asm
+mov rax,[rbx+rsi]          ; 64비트 모드에서는 64비트 레지스터를 써야 한다
+```
+
+### 11. EBX = 행, EDI = 열일 때 32비트 2차원 배열 원소를 EAX로 (한 문장)
+
+```asm
+mov eax,myArray[ebx + edi*TYPE myArray]
+```
+
+- **풀이:** 교재 9.4.3 예제처럼 EBX에는 행 번호에 행 크기(바이트)를 곱한 **행 오프셋**이 들어 있다고 본다. 스케일 팩터는 1, 2, 4, 8만 가능하므로 행 번호 그대로라면 먼저 행 크기를 곱해 둬야 한다.
+
+### 12. RBX = 행, RDI = 열일 때 64비트 2차원 배열 원소를 RAX로 (한 문장)
+
+```asm
+mov rax,myArray[rbx + rdi*TYPE myArray]    ; TYPE myArray = 8
+```
